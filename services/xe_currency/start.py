@@ -1,21 +1,22 @@
-import asyncio
+from __future__ import annotations
+
 import os
 
-from pkg.repository.pgsql import Pgsql
-from services.xe_currency.api import XECurrency
-from services.xe_currency.repository_pgsql import RepositoryPgSql
+from pkg.logger.iLogger import ILogger
+from services.xe_currency.const import Currency
+from services.xe_currency.currency import XECurrency
 
-RECONNECT_TIMEOUT_SEC: int = 3*60
-PARSE_TIMEOUT_SEC: int = 60*60
-
-db, user, password, host = os.getenv("PGSQL_DB"),os.getenv("PGSQL_USER"),os.getenv("PGSQL_PASSWORD"),\
-                           os.getenv("PGSQL_HOST")
-api_id, api_key = os.getenv('XE_API_ID'), os.getenv('XE_API_KEY')
-pgsql: Pgsql = Pgsql(db, user, password, host)
-repository: RepositoryPgSql = RepositoryPgSql(pgsql.connection)
-xe_currency_api: XECurrency = XECurrency(repository, api_id, api_key)
+RECONNECT_TIMEOUT_SEC: int = 3 * 60
+PARSE_TIMEOUT_SEC: int = 60 * 60
 
 
-
-if __name__ == '__main__':
-    asyncio.run(xe_currency_api.get_currencies())
+async def start(log: ILogger) -> None:
+    log.info('Запускаем обработчик для работы с XE')
+    api_id, api_key = os.getenv('XE_API_ID'), os.getenv('XE_API_KEY')
+    xe_currency: XECurrency = XECurrency(api_id, api_key, log)
+    currencies: list[Currency] = await xe_currency.get_currencies()
+    if currencies:
+        await xe_currency.save(currencies)
+        courses: list[dict[str, str | float]] = await xe_currency.get_cross_courses(currencies)
+        if courses:
+            await xe_currency.save_course(courses)

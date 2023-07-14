@@ -1,0 +1,62 @@
+version: '3.1'
+services:
+
+  postgres:
+    image: postgres:15.3
+    restart: always
+    environment:
+      POSTGRES_DB: ${PGSQL_DB}
+      POSTGRES_USER: ${PGSQL_USER}
+      POSTGRES_PASSWORD: ${PGSQL_PASSWORD}
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+    volumes:
+      - ./data/pgdata:/var/lib/postgresql/data
+
+  fast-api:
+    restart: always
+    build:
+      context: .
+      dockerfile: fast_api.Dockerfile
+    #    command: ./scripts/wait-for-it.sh devbox:${AIDBOX_PORT} --strict --timeout=0 -- python -m uvicorn main:app
+    command:
+      - /bin/bash
+      - -c
+      - |
+        alembic upgrade head
+        python3 -m uvicorn main:app --reload --host 0.0.0.0 --port 8000 &
+        celery -A message_query.tasks worker --beat --loglevel=info
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      # hot reload for development
+      - .:/app:cached
+
+      # это ничего не монтирует, но создает внутри контейнера папку,
+      # чтобы туда не пробрасывался текущий каталог data
+      - /app/venv
+    env_file:
+      - .env
+    ports:
+      - ${APP_PORT}:${APP_PORT}
+
+  redis:
+    restart: always
+    image: redis:alpine
+    sysctls:
+      - net.core.somaxconn=512
+    command: redis-server --requirepass "${REDIS_PASSWORD}"
+    volumes:
+      - ./data/redis-data:/var/lib/redis
+      - ./data/redis-data/redis.conf:/usr/local/etc/redis/redis.conf
+    env_file:
+      - .env
+    environment:
+      - REDIS_REPLICATION_MODE=master
+
+
+
+

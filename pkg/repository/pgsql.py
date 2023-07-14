@@ -1,19 +1,26 @@
-import psycopg2
+import asyncpg
+from asyncpg import Connection
 
 
 class Pgsql:
     _connection: None
+    db: str
+    user: str
+    password: str
+    host: str
 
     def __init__(self, db: str, user: str, password: str, host: str):
-        self._connection = psycopg2.connect(dbname=db, user=user, password=password, host=host)
-        try:
-            cur = self._connection.cursor()
-            cur.execute('SELECT 1')
-        except (psycopg2.OperationalError, psycopg2.InterfaceError) as err:
-            raise PgSqlConnectionError('Не удалось подключиться к базе данный.')
+        self.db, self.user, self.password, self.host = db, user, password, host
 
     @property
-    def connection(self):
+    async def connection(self) -> Connection:
+        self._connection: Connection = await asyncpg.connect(database=self.db, user=self.user, password=self.password,
+                                                             host=self.host)
+        try:
+            await self._connection.execute('SELECT 1')
+        except asyncpg.InterfaceError as err:
+            raise PgSqlConnectionError('Не удалось подключиться к базе данный.')
+
         return self._connection
 
 

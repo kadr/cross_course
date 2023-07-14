@@ -1,19 +1,18 @@
 from __future__ import annotations
 
-import psycopg2
+from asyncpg import Connection
 
-from services.xe_currency.api import IRepository
+from services.xe_currency.currency import IRepository
 from services.xe_currency.const import Currency
 
 
 class RepositoryPgSql(IRepository):
-    connection: psycopg2.connection
+    connection: Connection
 
-    def __init__(self, connection: psycopg2.connection):
+    def __init__(self, connection: Connection):
         self.connection = connection
 
-    def create(self, data: Currency | list[Currency]) -> bool:
-        cursor: psycopg2.cursor = self.connection.cursor()
+    async def create(self, data: Currency | list[Currency]) -> bool:
         insert_sql: str = 'INSERT INTO currency (iso, currency_name, is_obsolete, ' \
                           'superseded_by,currency_symbol, currency_symbol_on_right) ' \
                           'VALUES (%s,%s,%b,%s,%s,%b)'
@@ -28,9 +27,7 @@ class RepositoryPgSql(IRepository):
                            data.get('superseded_by'), data.get('currency_symbol'),
                            data.get('currency_symbol_on_right')))
 
-        cursor.executemany(insert_sql, values)
-        self.connection.commit()
-        if cursor.rowcount:
+        if await self.connection.executemany(insert_sql, values):
             return True
 
         return False
