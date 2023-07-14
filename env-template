@@ -1,0 +1,9 @@
+XE_API_ID=secret-id
+XE_API_KEY=secret-key
+PGSQL_DB=postgres
+PGSQL_USER=postgresql
+PGSQL_PASSWORD=postgresql
+PGSQL_HOST=postgres
+APP_PORT=8000
+REDIS_HOST=redis
+REDIS_PASSWORD=redis-pass

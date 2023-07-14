@@ -52,7 +52,7 @@ router_cross_course = APIRouter(
 
 @router_cross_course.get('/{first_currency}/{second_currency}', response_model=GetCrossCourse)
 async def get_last_cross_course(first_currency: str, second_currency: str,  session: AsyncSession = Depends(get_async_session)):
-    query = select(CrossCourse).filter(CrossCourse.name == f'{first_currency}/{second_currency}').order_by(desc(CrossCourse.id))
+    query = select(CrossCourse).filter(CrossCourse.name == f'{first_currency}/{second_currency}').order_by(desc(CrossCourse.create_at))
     res = (await session.execute(query)).first()
     if not res:
         raise RecordNotFoundError("Записи не найдены")
