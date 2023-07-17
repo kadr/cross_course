@@ -1,23 +1,18 @@
-from fastapi import FastAPI, Request
-from starlette.responses import JSONResponse
+from concurrent import futures
 
-from pkg.logger.iLogger import ILogger
-from pkg.logger.logger import Logger
-from src.currency.router import router as router_currency, RecordNotFoundError, router_cross_course
+import grpc
 
-logger: ILogger = Logger()
-app = FastAPI()
+from currency.grpc import CurrencyServices
+from ..pkg.grpc.src.currency import model_pb2_grpc
 
 
-@app.exception_handler(Exception)
-async def exception_handler(request: Request, exc: Exception):
-    message = f"Что то пошло не так. {exc}"
-    status = 500
-    if isinstance(exc, RecordNotFoundError):
-        status = 404
-        message = str(exc)
-    return JSONResponse(status_code=status, content={"message": message})
+def serve():
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    model_pb2_grpc.add_CurrencyServicesServicer_to_server(CurrencyServices(), server)
+    server.add_insecure_port('[::]:5000')
+    server.start()
+    server.wait_for_termination()
 
 
-app.include_router(router_currency)
-app.include_router(router_cross_course)
+if __name__ == '__mane__':
+    serve()
