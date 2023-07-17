@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+service CourseService {
+  rpc GetCourse(GetCourseRequest) returns (GetCourseResponse);
+  rpc GetCourses(GetCoursesRequest) returns (GetCoursesResponse);
+  rpc AddCourse(AddCourseRequest) returns (GetCourseResponse);
+  rpc CalcCourse(CalcCourseRequest) returns (GetCourseResponse);
+}
+
+message Course {
+  uint32 id = 1;
+  string name = 2;
+  float course = 3;
+  optional float create_at = 4;
+}
+
+message GetCourseRequest {
+  uint32 id = 1;
+}
+message GetCoursesRequest {
+  uint32 limit = 1;
+}
+
+message AddCourseRequest {
+  string name = 1;
+  float course = 2;
+}
+
+message CalcCourseRequest {
+  string first_currency_name = 1;
+  string second_currency_name = 2;
+}
+
+message GetCourseResponse {
+  Course course = 1;
+}
+message GetCoursesResponse {
+  repeated Course course = 1;
+}

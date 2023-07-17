@@ -33,3 +33,4 @@ PGSQL_HOST: Final = os.getenv('PGSQL_HOST')
 if not PGSQL_HOST:
     logger.error("не задан хост для подключения к БД")
     exit(1)
+RPC_PORT: Final = os.getenv('RPC_PORT')

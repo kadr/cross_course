@@ -11,3 +11,5 @@ celery==5.3.1
 redis==4.6.0
 alembic==1.11.1
 asyncpg==0.28.0
+grpcio==1.56
+grpcio-tools==1.56

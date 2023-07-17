@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+service CurrencyServices {
+  rpc GetCurrency(GetCurrencyRequest) returns (GetCurrencyResponse);
+  rpc GetCurrencies(GetCurrenciesRequest) returns (GetCurrenciesResponse);
+  rpc AddCurrency(AddCurrencyRequest) returns (GetCurrencyResponse);
+}
+
+message Currency {
+  uint32 id = 1;
+  string iso = 2;
+  string currency_name = 3;
+  bool is_obsolete = 4;
+  optional string superseded_by = 5;
+  optional string currency_symbol = 6;
+  optional bool currency_symbol_on_right = 7;
+  optional float create_at = 8;
+}
+
+message GetCurrencyRequest {
+  uint32 id = 1;
+}
+
+message GetCurrenciesRequest {
+  optional uint32 limit = 1;
+  optional bool is_obsolete = 2;
+  optional string superseded_by = 3;
+}
+message AddCurrencyRequest {
+  string iso = 1;
+  string currency_name = 2;
+  bool is_obsolete = 3;
+  optional string superseded_by = 4;
+  optional string currency_symbol = 5;
+  optional bool currency_symbol_on_right = 6;
+}
+
+message GetCurrencyResponse {
+  Currency currency = 1;
+}
+
+message GetCurrenciesResponse {
+  repeated Currency currency = 1;
+}
